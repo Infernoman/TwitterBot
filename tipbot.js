@@ -2,13 +2,7 @@ var Twitter = require('twit'),
 	coin = require('node-altcoin'),
 	yaml = require('js-yaml'),
 	winston = require('winston'),
-  fs = require('fs');
-var client = new Twitter({
-  consumer_key: 'KEY',
-  consumer_secret: 'SECRET',
-  access_token: 'KEY',
-  access_token_secret: 'SECRET'
-});
+        fs = require('fs');
 
 // check if the config file exists
 if (!fs.existsSync('./config/twitter.yml')) {
@@ -18,6 +12,13 @@ if (!fs.existsSync('./config/twitter.yml')) {
 
 // load settings
 var settings = yaml.load(fs.readFileSync('./config/twitter.yml', 'utf-8'));
+
+var client = new Twitter({
+  consumer_key: settings.twitter.consumer_key,
+  consumer_secret: settings.twitter.consumer_secret,
+  access_token: settings.twitter.access_token,
+  access_token_secret: settings.twitter.access_token_secret
+});
 
 // load winston's cli defaults
 winston.cli();
