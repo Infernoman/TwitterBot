@@ -12,6 +12,8 @@ if (!fs.existsSync('./config/twitter.yml')) {
 
 // load settings
 var settings = yaml.load(fs.readFileSync('./config/twitter.yml', 'utf-8'));
+var shortCoin = settings.coin.short_name;
+var twitterUsername = settings.twitter.username.toLowerCase();
 
 var client = new Twitter({
   consumer_key: settings.twitter.consumer_key,
@@ -49,19 +51,19 @@ coin.getBalance(function(err, balance) {
     }
 
     var balance = typeof(balance) == 'object' ? balance.result : balance;
-    winston.info('Connected to JSON RPC API. Current total balance is %d ' + settings.coin.short_name, balance);
+    winston.info('Connected to JSON RPC API. Current total balance is %d ' + shortCoin, balance);
 });
 
-var stream = client.stream('statuses/filter', {track: ['@'+settings.twitter.username]})
+var stream = client.stream('statuses/filter', {track: ['@'+twitterUsername]})
 
-  	stream.on('tweet', function(tweet) {
+  stream.on('tweet', function(tweet) {
         from = tweet.user.screen_name;
         from = from.toLowerCase();
         var message = tweet.text.toLowerCase();
-        if (from != settings.twitter.username) {
+        if (from != twitterUsername) {
   		    var random = Math.random().toFixed(3);
-            if(message.indexOf("@"+settings.twitter.username+" ") != -1){
-                var message = message.substr(message.indexOf("@"+settings.twitter.username+" ") + settings.twitter.username.length()+1);
+            if(message.indexOf("@"+twitterUsername+" ") != -1){
+                var message = message.substr(message.indexOf("@"+twitterUsername+" ") + twitterUsername.length()+1);
             }
   		    var match = message.match(/^(!)(\S+)/);
             if (match === null) return;
@@ -112,7 +114,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+settings.twitter.user
                             var unconfirmed_balance = typeof(unconfirmed_balance) == 'object' ? unconfirmed_balance.result : unconfirmed_balance - balance;
                             winston.info(from+"'s Unconfirmed_Balance is " + unconfirmed_balance);
                             client.post('statuses/update', {
-                               status: '@'+from+', Your current balance  is ' + balance +' $'+settings.coin.short_name+'. ( Unconfirmed: ' +unconfirmed_balance+ ' ) (R+='+random+')',
+                               status: '@'+from+', Your current balance  is ' + balance +' $'+shortCoin+'. ( Unconfirmed: ' +unconfirmed_balance+ ' ) (R+='+random+')',
                                in_reply_to_status_id: tweetid
                             },  function(error, tweet, response){
                             });
@@ -146,7 +148,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+settings.twitter.user
                     var match = message.match(/^.?tip (\S+) ([\d\.]+)/);
                     if (match === null || match.length < 3) {
                         client.post('statuses/update', {
-                            status: '@'+from+', Usage: !tip <nickname> <amount> @'+settings.twitter.username+' (R+='+random+')',
+                            status: '@'+from+', Usage: !tip <nickname> <amount> @'+twitterUsername+' (R+='+random+')',
                             in_reply_to_status_id: tweetid
                         },  function(error, tweet, response){
                         });
@@ -177,7 +179,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+settings.twitter.user
 
                     if (amount < settings.coin.min_tip) {
                         client.post('statuses/update', {
-                            status: '@'+from+" I'm sorry, your tip to @"+to+' ('+amount.toFixed(8)+' $'+settings.coin.short_name+') is too small (min. '+'0.1 '+settings.coin.short_name+')' +' (R+='+random+')',
+                            status: '@'+from+" I'm sorry, your tip to @"+to+' ('+amount.toFixed(8)+' $'+shortCoin+') is too small (min. '+'0.1 '+shortCoin+')' +' (R+='+random+')',
                             in_reply_to_status_id: tweetid
                         },  function(error, tweet, response){
                         });
@@ -209,9 +211,9 @@ var stream = client.stream('statuses/filter', {track: ['@'+settings.twitter.user
                                     return;
                                 }
 
-                                winston.info('%s tipped %s %d %s', from.toLowerCase(), to.toLowerCase(), amount, settings.coin.short_name);
+                                winston.info('%s tipped %s %d %s', from.toLowerCase(), to.toLowerCase(), amount, shortCoin);
                                     client.post('statuses/update', {
-                                        status: '@'+from+' tipped @' + to +' '+ amount.toFixed(8) +' $'+settings.coin.short_name+' Tweet "@'+settings.twitter.username+' !help" to claim your tip ! (R+='+random+')',
+                                        status: '@'+from+' tipped @' + to +' '+ amount.toFixed(8) +' $'+shortCoin+' Tweet "@'+twitterUsername+' !help" to claim your tip ! (R+='+random+')',
                                         in_reply_to_status_id: tweetid
                                     },  function(error, tweet, response){
                                     });
@@ -220,7 +222,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+settings.twitter.user
                             short = amount - balance;
                             winston.info('%s tried to tip %s %d, but has only %d', from, to, amount.toFixed(8), balance);
                             client.post('statuses/update', {
-                                status: '@'+from+" I'm sorry, you dont have enough funds (you are short "+short.toFixed(8)+' $'+settings.coin.short_name+') (R+='+random+')',
+                                status: '@'+from+" I'm sorry, you dont have enough funds (you are short "+short.toFixed(8)+' $'+shortCoin+') (R+='+random+')',
                                 in_reply_to_status_id: tweetid
                             },  function(error, tweet, response){
                             });
@@ -232,7 +234,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+settings.twitter.user
                     var match = message.match(/^.?withdraw (\S+)$/);
                     if (match === null) {
                         client.post('statuses/update', {
-                            status: "@"+from+', Usage: <@'+settings.twitter.username+' !withdraw [' + settings.coin.full_name + ' address]> (R+='+random+')',
+                            status: "@"+from+', Usage: <@'+twitterUsername+' !withdraw [' + settings.coin.full_name + ' address]> (R+='+random+')',
                             in_reply_to_status_id: tweetid
                         },  function(error, tweet, response){
                         });
@@ -267,7 +269,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+settings.twitter.user
                                 if (balance < settings.coin.min_withdraw) {
                                     winston.warn('%s tried to withdraw %d, but min is set to %d', from, balance, settings.coin.min_withdraw);
                                     client.post('statuses/update', {
-                                        status: "@"+from+" I'm sorry, the minimum withdrawal amount is 5 $"+settings.coin.short_name+" you are short "+short.toFixed(8)+' $'+settings.coin.short_name+' (R+='+random+')',
+                                        status: "@"+from+" I'm sorry, the minimum withdrawal amount is 5 $"+shortCoin+" you are short "+short.toFixed(8)+' $'+shortCoin+' (R+='+random+')',
                                         in_reply_to_status_id: tweetid
                                     },  function(error, tweet, response){
                                     });
@@ -286,10 +288,10 @@ var stream = client.stream('statuses/filter', {track: ['@'+settings.twitter.user
                                     }
 
                                     client.post('statuses/update', {
-                                        status: '@'+from+ ': ' + fee + ' $'+settings.coin.short_name+' has been withdrawn from your account to '+address,
+                                        status: '@'+from+ ': ' + fee + ' $'+shortCoin+' has been withdrawn from your account to '+address,
                                         in_reply_to_status_id: tweetid
                                    	},  function(error, tweet, response){
-                                        winston.info('Sending '+ fee +' $'+settings.coin.short_name+' to '+address+' for @'+from);
+                                        winston.info('Sending '+ fee +' $'+shortCoin+' to '+address+' for @'+from);
                                     });
 
                                     // transfer the rest (usually withdrawal fee - txfee) to bots wallet
