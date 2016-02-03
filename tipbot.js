@@ -61,17 +61,21 @@ var stream = client.stream('statuses/filter', {track: ['@'+twitterUsername]})
         from = from.toLowerCase();
         var message = tweet.text.toLowerCase();
         if (from != twitterUsername) {
-  		    var random = Math.random().toFixed(3);
+            var random = Math.random().toFixed(3);
+
             if(message.indexOf("@"+twitterUsername+" ") != -1){
-                var message = message.substr(message.indexOf("@"+twitterUsername+" ") + twitterUsername.length()+1);
+                var message = message.substr(message.indexOf("@"+twitterUsername+" ") + (twitterUsername.length+1));
             }
-  		    var match = message.match(/^(!)(\S+)/);
+
+            var match = message.match(/^(!)(\S+)/);
             if (match === null) return;
+
             var prefix = match[1];
             var command = match[2];
             tweetid = tweet.id_str;
             winston.info('New Tweet from '+from+' with TweetId: '+ tweetid);
             winston.info(match);
+
             // if command doesnt match return
             if (settings.commands[command]) {
             } else {
@@ -84,8 +88,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+twitterUsername]})
                 });
                 return;
             }
-	
-	       //commands
+	    //commands
             switch (command) {
                 case 'balance':
                     coin.getBalance(from, 3, function(err, balance) {
@@ -118,7 +121,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+twitterUsername]})
                                in_reply_to_status_id: tweetid
                             },  function(error, tweet, response){
                             });
-                	    });
+                	});
             	    });
                 break;
 
@@ -157,7 +160,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+twitterUsername]})
                     var to = match[1];
                     to = to.toLowerCase().replace('@','');
                     var amount = Number(match[2]);
-                    winston.info('from: '+from.toLowerCase()+' to: '+to+' amount: '+amount);
+                    winston.info('from: '+from+' to: '+to+' amount: '+amount);
 
                     if (!amount || amount == 0 || amount == null) {
                         client.post('statuses/update', {
@@ -168,7 +171,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+twitterUsername]})
                         return;
                     }
 
-                    if (to.toLowerCase() == from.toLowerCase()) {
+                    if (to == from) {
                         client.post('statuses/update', {
                             status: '@'+from+" I'm sorry, You cant tip yourself !" +' (R+='+random+')',
                             in_reply_to_status_id: tweetid
@@ -187,7 +190,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+twitterUsername]})
                     }
 
                     // check balance with min. 5 confirmations
-                    coin.getBalance(from.toLowerCase(), 3, function(err, balance) {
+                    coin.getBalance(from, 3, function(err, balance) {
                         if (err) {
                             winston.error('Error in !tip command.', err);
                             client.post('statuses/update', {
@@ -211,7 +214,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+twitterUsername]})
                                     return;
                                 }
 
-                                winston.info('%s tipped %s %d %s', from.toLowerCase(), to.toLowerCase(), amount, shortCoin);
+                                winston.info('%s tipped %s %d %s', from, to, amount, shortCoin);
                                     client.post('statuses/update', {
                                         status: '@'+from+' tipped @' + to +' '+ amount.toFixed(8) +' $'+shortCoin+' Tweet "@'+twitterUsername+' !help" to claim your tip ! (R+='+random+')',
                                         in_reply_to_status_id: tweetid
@@ -254,7 +257,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+twitterUsername]})
                         }
 
                         if (reply.isvalid) {
-                            coin.getBalance(from.toLowerCase(), settings.coin.min_confirmations, function(err, balance) {
+                            coin.getBalance(from, settings.coin.min_confirmations, function(err, balance) {
                                 if (err) {
                                     client.post('statuses/update', {
                                         status: "@"+from+", I'm Sorry I could not get your balance"+' (R+='+random+')',
@@ -276,7 +279,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+twitterUsername]})
                                     return;
                                 }
                             
-                                coin.sendFrom(from.toLowerCase(), address, fee, function(err, reply) {
+                                coin.sendFrom(from, address, fee, function(err, reply) {
                                     if (err) {
                                         winston.error('Error in !withdraw command', err);
                                         client.post('statuses/update', {
@@ -295,16 +298,16 @@ var stream = client.stream('statuses/filter', {track: ['@'+twitterUsername]})
                                     });
 
                                     // transfer the rest (usually withdrawal fee - txfee) to bots wallet
-                                    coin.getBalance(from.toLowerCase(), function(err, balance) {
+                                    coin.getBalance(from, function(err, balance) {
                                         if (err) {
                                             winston.error('Something went wrong while transferring fees', err);
                                             return;
                                         }
                                         var balance = typeof(balance) == 'object' ? balance.result : balance;
                                         // Move fees to tipbot
-                                        coin.move(from.toLowerCase(), '""', balance);
+                                        coin.move(from, '""', balance);
 
-                                        coin.getBalance(from.toLowerCase(), function(err, balance) {
+                                        coin.getBalance(from, function(err, balance) {
                                             if (err) {
                                                 winston.error('Something went wrong while transferring fees', err);
                                                 return;
@@ -313,7 +316,7 @@ var stream = client.stream('statuses/filter', {track: ['@'+twitterUsername]})
 
                                             if (balance > 0) {
                                                 // Change balance to 0
-                                                coin.move('""', from.toLowerCase(), balance);
+                                                coin.move('""', from, balance);
                                             }
                                         });
                                     });
