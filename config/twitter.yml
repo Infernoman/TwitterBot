@@ -1,0 +1,16 @@
+log:
+  file: twitter.log
+rpc:
+  host: localhost
+  port: RPCPORT
+  user: RPCUSERNAME
+  pass: RPCPASSWORD
+coin:
+  withdrawal_fee: 1
+  min_withdraw: 5
+  min_confirmations: 3
+  min_tip: 0.01
+  short_name: TX
+  full_name: TransferCoin
+twitter:
+  username: Transfer_Dev
