@@ -12,6 +12,8 @@ coin:
   min_tip: 0.01
   short_name: TX
   full_name: TransferCoin
+twitter:
+  username: Transfer_Dev
 commands:
   help:
     pm: true
