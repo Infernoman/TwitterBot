@@ -1,0 +1,49 @@
+log:
+  file: twitter.log
+rpc:
+  host: localhost
+  port: RPCPORT
+  user: RPCUSERNAME
+  pass: RPCPASSWORD
+coin:
+  withdrawal_fee: 1
+  min_withdraw: 5
+  min_confirmations: 3
+  min_tip: 0.01
+  short_name: TX
+  full_name: TransferCoin
+commands:
+  help:
+    pm: true
+    channel: true
+  tip:
+    pm: false
+    channel: true
+  balance:
+    pm: true
+    channel: true
+  withdraw:
+    pm: true
+    channel: true
+  address:
+    pm: true
+    channel: true
+messages:
+  error: 'Sorry %name%, something went wrong.'
+  no_funds: 'Sorry %name%, you dont have enough funds (you are %short% %short_name% short)'
+  tipped: '@%from% tipped @%to% %amount% %short_name%! "/msg Transfer-dev help" to claim your tip!'
+  balance: '@%name% has %balance% %short_name%.'
+  balance_unconfirmed: '@%name% has %balance% %short_name% (unconfirmed: %unconfirmed% %short_name%)'
+  deposit_address: '@%name%, your deposit address is %address%'
+  withdraw_too_small: 'Sorry @%name%, you need to withdraw at least %min_withdraw% %short_name% (you have %balance% %short_name%)'
+  invalid_address: 'Sorry @%name%, the address you specified is invalid (%address%).'
+  tip_too_small: 'Sorry @%from%, your tip to @%to% (%amount% %short_name%) is too small (min. %min_tip% %short_name%).'
+  tip_self: "Sorry @%name%, you can't tip yourself!"
+  invalid_amount: 'Sorry @%name%, "%amount%" is not a correct amount.'
+  withdraw_success:
+    - '@%name%: %amount% %short_name% has been withdrawn from your account to %address% TXHASH=%transaction%'
+  help:
+    - '!balance - displays your current wallet balance'
+    - '!address - displays %full_name% address where you can send your funds to the tx bot'
+    - '!withdraw <%full_name% address> - withdraws your whole wallet balance to specified address (you will be charged %withdrawal_fee% %short_name% withdrawal fee)'
+    - '!tip <nick> <amount> - sends the specified amount of %full_name% to the specified nickname'
